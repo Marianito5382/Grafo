@@ -1,0 +1,2 @@
+Adjunto el metodo del grafo
+al igual que el recorrido hamiltoniano y el recorrido Djistra
