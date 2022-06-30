@@ -1,116 +1,63 @@
-import math
-
-class Vertice:
-
-	def _init_(self, i):
-
-		self.id = i
-		self.vecinos = []
-		self.visitado = False
-		self.padre = None
-		self.costo = float('inf')
-
-	def agregarVecino(self, v, p):
-
-		if v not in self.vecinos:
-			self.vecinos.append([v, p])
-
-class Grafica:
-
-	def _init_(self):
-	
-		self.vertices = {}
-
-	def agregarVertice(self, id):
-	
-		if id not in self.vertices:
-			self.vertices[id] = Vertice(id)
-
-	def agregarArista(self, a, b, p):
-
-		if a in self.vertices and b in self.vertices:
-			self.vertices[a].agregarVecino(b, p)
-			self.vertices[b].agregarVecino(a, p)
-
-	def imprimirGrafica(self):
-	
-		for v in self.vertices:
-			print("El costo del vértice "+str(self.vertices[v].id)+" es "+ str(self.vertices[v].costo)+" llegando desde "+str(self.vertices[v].padre))
-			
-	
-	def camino(self, a, b):
-
-		camino = []
-		actual = b
-		while actual != None:
-			camino.insert(0, actual)
-			actual = self.vertices[actual].padre
-		return [camino, self.vertices[b].costo]
-
-	def minimo(self, l):
-	
-		if len(l) > 0:
-			m = self.vertices[l[0]].costo
-			v = l[0]
-			for e in l:
-				if m > self.vertices[e].costo:
-					m = self.vertices[e].costo
-					v = e
-			return v
-		return None
-
-	def dijkstra(self, a):
-
-		if a in self.vertices:
-			# 1 y 2
-			self.vertices[a].costo = 0
-			actual = a
-			noVisitados = []
-			
-			for v in self.vertices:
-				if v != a:
-					self.vertices[v].costo = float('inf')
-				self.vertices[v].padre = None
-				noVisitados.append(v)
-
-			while len(noVisitados) > 0:
-				#3
-				for vec in self.vertices[actual].vecinos:
-					if self.vertices[vec[0]].visitado == False:
-						# 3.a
-						if self.vertices[actual].costo + vec[1] < self.vertices[vec[0]].costo:
-							self.vertices[vec[0]].costo = self.vertices[actual].costo + vec[1]
-							self.vertices[vec[0]].padre = actual
-
-				# 4
-				self.vertices[actual].visitado = True
-				noVisitados.remove(actual)
-
-				# 5 y 6
-				actual = self.minimo(noVisitados)
-		else:
-			return False
-
-class main:
-	g = Grafica()
-	g.agregarVertice(1)
-	g.agregarVertice(2)
-	g.agregarVertice(3)
-	g.agregarVertice(4)
-	g.agregarVertice(5)
-	g.agregarVertice(6)
-	g.agregarArista(1, 6, 14)
-	g.agregarArista(1, 2, 7)
-	g.agregarArista(1, 3, 9)
-	g.agregarArista(2, 3, 10)
-	g.agregarArista(2, 4, 15)
-	g.agregarArista(3, 4, 11)
-	g.agregarArista(3, 6, 2)
-	g.agregarArista(4, 5, 6)
-	g.agregarArista(5, 6, 9)
-
-	print("\n\nLa ruta más rápida por Dijkstra junto con su costo es:")
-	g.dijkstra(1)
-	print(g.camino(1, 6))
-	print("\nLos valores finales de la gráfica son los siguietes:")
-	g.imprimirGrafica()
+# -*- coding: utf-8 -*-
+import networkx as nx
+def dijsktra(Grafo, Nodos):
+    
+#        Encuentra la geodésica entre un nodo origen y un nodo final en una grafo.
+#        
+#        Parámetros
+#        -----------
+#        Grafo : Grafo de Networkx
+#            Grafo donde se va a buscar la geodésica.
+#        Who : tupla
+#            Nodo origen y objetivo, respectivamente.
+#        
+#        Regresa
+#        --------
+#        S : lista
+#            Camino de nodos de la geodésica
+    
+    grafo = nx.to_dict_of_lists(Grafo)
+    S = []; Queue = []; anterior = [0 for i in range(max(grafo)+1)]; distancia = [0 for i in range(max(grafo)+1)]
+    
+    for nodo in grafo:
+        distancia[nodo] = 10000
+        Queue.append(nodo)
+        
+    distancia[Nodos[0]] = 0
+    
+    while not len(Queue) == 0:
+        distancia_minima = 10000
+        for nodo in Queue:
+            if distancia[nodo] < distancia_minima:
+                distancia_minima = distancia[nodo]
+                nodo_temporal = nodo
+        nodo_distancia_minima = nodo_temporal
+        Queue.remove(nodo_distancia_minima)
+        
+        for vecino in grafo[nodo_distancia_minima]:
+            if distancia[nodo_distancia_minima] == 10000:
+                distancia_temporal = 0
+            else:
+                distancia_temporal = distancia[nodo_distancia_minima]
+            distancia_con_peso = distancia_temporal + Grafo[nodo_distancia_minima][vecino]['peso']
+            if distancia_con_peso < distancia[vecino]:
+                distancia[vecino] = distancia_con_peso
+                anterior[vecino] = nodo_distancia_minima
+                
+        if nodo_distancia_minima == Nodos[1]:
+            if anterior[nodo_distancia_minima] != 0 or nodo_distancia_minima == Nodos[0]:
+                while nodo_distancia_minima != 0:
+                    S.insert(0, nodo_distancia_minima)
+                    nodo_distancia_minima = anterior[nodo_distancia_minima]
+                return S
+                
+ 
+##### Prueba #####               
+G = nx.Graph()
+edges = [(1, 2), (1, 3), (1, 4), (2, 5), (3, 5), (3, 6), (4, 6), (6, 7), (6, 8), (7, 8)]
+weights = [3, 2, 5, 3, 1, 6, 2, 4, 1, 2]
+G.add_edges_from(edges)
+for i, edge in enumerate(edges): 
+    G[edge[0]][edge[1]]['peso'] = weights[i]
+    
+print(dijsktra(G, (1, 8)))
